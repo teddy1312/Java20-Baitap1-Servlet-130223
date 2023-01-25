@@ -20,7 +20,7 @@
         <form method="post">
             <div class="form-group">
               <label>Nhập tên người chơi:</label>
-              <input id="enter-name" type="text" class="form-control" minlength="3" maxlength="8">
+              <input id="enter-name" type="text" class="form-control" minlength="1" maxlength="16">
             </div>
 
             <button id="btn-play" type="submit" class="btn btn-primary">${play}</button>
