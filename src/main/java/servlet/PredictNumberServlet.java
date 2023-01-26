@@ -17,8 +17,33 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
+
 @WebServlet(name = "PredictNumberServlet",urlPatterns = {"/play","/records"})
 public class PredictNumberServlet extends HttpServlet {
+    // Meaning of Status Code
+    // 501 - Bắt đầu chơi
+    // 502 - Chơi lại game
+    // 503 - Chưa nhập tên người chơi
+    // 504 - Số đoán nhỏ hơn đáp án
+    // 505 - Số đoán lớn hơn đáp án
+    // 506 - Đoán số chính xác
+    // 507 - Chưa nhập số đoán
+    // 508 - Số đoán nằm ngoài phạm vi cho phép
+    // 509 - Chưa nhấn nút bắt đầu
+    // 510 - Đã đoán đúng số rồi đừng nhập số nữa
+
+    final int START_GAME = 501;
+    final int RESET_GAME = 502;
+    final int NAME_MISSING = 503;
+    final int SMALLER_NUM = 504;
+    final int BIGGER_NUM = 505;
+    final int CORRECTED = 506;
+    final int NUMBER_MISSING = 507;
+    final int OUT_RANGE = 508;
+    final int NOT_START_YET = 509;
+    final int ALREADY_CORRECT = 510;
+
     private String playerName = "";
     private int countQty = 0;
     private int randomNumber = 0;
@@ -57,8 +82,6 @@ public class PredictNumberServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        BasicResponse basicResponse = new BasicResponse();
-
         String selectButton = req.getParameter("select");
         if("playButton".equals(selectButton)){
             if(!startGame){
@@ -66,45 +89,39 @@ public class PredictNumberServlet extends HttpServlet {
                 System.out.println("Player name: "+playerName);
 
                 if("".equals(playerName)){   // Chưa điền tên người chơi
-                    basicResponse.setMessage("nameMissing");
-                    toJson(resp,basicResponse);
+                    toJson(resp,NAME_MISSING);
                 } else{
                     startGame(resp);
                     System.out.println("Random number: "+randomNumber);
                 }
             }else{
                 resetVariable();
-                basicResponse.setMessage("resetGame");
-                toJson(resp,basicResponse);
+                toJson(resp,RESET_GAME);
             }
         } else if("submitButton".equals(selectButton)){
             if(!startGame){
-                basicResponse.setMessage("notStartedYet");
-                toJson(resp,basicResponse);
+                toJson(resp,NOT_START_YET);
             }else{
-                submitNumber(req,resp,basicResponse);
+                String predictNum = req.getParameter("number");
+                System.out.println("Prediction number: "+predictNum);
+
+                submitNumber(resp,predictNum);
             }
         }
     }
 
-    private void submitNumber(HttpServletRequest req,HttpServletResponse resp,BasicResponse basicResponse) throws IOException {
-        String predictNum = req.getParameter("number");
-        System.out.println("Prediction number: "+predictNum);
-
+    private void submitNumber(HttpServletResponse resp,String predictNum) throws IOException {
         if("".equals(predictNum)){   // Chưa nhập số dự đoán
-            basicResponse.setMessage("numberMissing");
-            toJson(resp,basicResponse);
+            toJson(resp,NUMBER_MISSING);
         } else{
             int num = Integer.parseInt(predictNum);
             if(num<1 || num>1000){
-                basicResponse.setMessage("outRange");
-                toJson(resp,basicResponse);
+                toJson(resp,OUT_RANGE);
             } else{
                 if(!predictCorrect){
                     compareNumber(resp,num);
                 }else{
-                    basicResponse.setMessage("finished");
-                    toJson(resp,basicResponse);
+                    toJson(resp,ALREADY_CORRECT);
                 }
             }
         }
@@ -115,30 +132,71 @@ public class PredictNumberServlet extends HttpServlet {
         startGame = true;
         randomNumber = createRandomNumber();
 
-        BasicResponse basicResponse = new BasicResponse();
-        basicResponse.setMessage("startPlay");
-        basicResponse.setData(playerName);
-        toJson(response,basicResponse);
+        toJson(response,START_GAME);
     }
 
     private void compareNumber(HttpServletResponse response, int predictNum) throws IOException {
-        BasicResponse basicResponse = new BasicResponse();
-
         countQty++;
         if(predictNum < randomNumber){
-            basicResponse.setMessage("smaller");
+            toJson(response,SMALLER_NUM);
         } else if(predictNum > randomNumber){
-            basicResponse.setMessage("bigger");
+            toJson(response,BIGGER_NUM);
         } else{
-            basicResponse.setMessage("bingo");
+            toJson(response,CORRECTED);
+
             predictCorrect = true;
             saveData(playerName,countQty);
         }
-        basicResponse.setData(countQty);
-        toJson(response,basicResponse);
     }
 
-    private void toJson(HttpServletResponse response,BasicResponse basicResponse) throws IOException {
+    private void toJson(HttpServletResponse response,int statusCode) throws IOException {
+        BasicResponse basicResponse = new BasicResponse();
+        basicResponse.setStatusCode(statusCode);
+        switch (statusCode){
+            case START_GAME:
+                basicResponse.setMessage("Bắt đầu chơi");
+                basicResponse.setData(playerName);
+                break;
+            case RESET_GAME:
+                basicResponse.setMessage("Chơi lại game");
+                basicResponse.setData(null);
+                break;
+            case NAME_MISSING:
+                basicResponse.setMessage("Chưa nhập tên người chơi");
+                basicResponse.setData(null);
+                break;
+            case SMALLER_NUM:
+                basicResponse.setMessage("Số đoán nhỏ hơn đáp án");
+                basicResponse.setData(countQty);
+                break;
+            case BIGGER_NUM:
+                basicResponse.setMessage("Số đoán lớn hơn đáp án");
+                basicResponse.setData(countQty);
+                break;
+            case CORRECTED:
+                basicResponse.setMessage("Đoán số chính xác");
+                basicResponse.setData(countQty);
+                break;
+            case NUMBER_MISSING:
+                basicResponse.setMessage("Chưa nhập số đoán");
+                basicResponse.setData(null);
+                break;
+            case OUT_RANGE:
+                basicResponse.setMessage("Số đoán nằm ngoài phạm vi cho phép");
+                basicResponse.setData(null);
+                break;
+            case NOT_START_YET:
+                basicResponse.setMessage("Chưa nhấn nút bắt đầu");
+                basicResponse.setData(null);
+                break;
+            case ALREADY_CORRECT:
+                basicResponse.setMessage("Đã đoán đúng số rồi đừng nhập số nữa");
+                basicResponse.setData(null);
+                break;
+            default:
+                break;
+        }
+
         Gson gson = new Gson();
         String dataJson = gson.toJson(basicResponse);
 
@@ -213,4 +271,5 @@ public class PredictNumberServlet extends HttpServlet {
             recordService.setData(newDataList,true);
         }
     }
+
 }

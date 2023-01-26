@@ -1,8 +1,17 @@
 package payload;
 
 public class BasicResponse {
+    private int statusCode;
     private String message;
     private Object data;
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
 
     public String getMessage() {
         return message;

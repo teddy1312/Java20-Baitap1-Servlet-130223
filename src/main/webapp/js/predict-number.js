@@ -1,3 +1,15 @@
+// Meaning of Status Code
+// 501 - Bắt đầu chơi
+// 502 - Chơi lại game
+// 503 - Chưa nhập tên người chơi
+// 504 - Số đoán nhỏ hơn đáp án
+// 505 - Số đoán lớn hơn đáp án
+// 506 - Đoán số chính xác
+// 507 - Chưa nhập số đoán
+// 508 - Số đoán nằm ngoài phạm vi cho phép
+// 509 - Chưa nhấn nút bắt đầu
+// 510 - Đã đoán đúng số rồi đừng nhập số nữa
+
 $(document).ready(function (){
     $("#btn-play").click(function (e){
         e.preventDefault()
@@ -14,15 +26,15 @@ $(document).ready(function (){
                 'select': select
             }
         }).done(function (data){
-            if(data.message === 'startPlay'){
+            if(data.statusCode == 501){
                 This.html('Chơi lại')
                 $("#result-display").html('Mời '+data.data+' nhập số dự đoán')
-            }else if(data.message ==='nameMissing'){
-                alert('Bạn chưa nhập tên người chơi')
-            }else if(data.message ==='resetGame'){
+            } else if(data.statusCode == 502){
                 This.html('Bắt đầu')
                 $("#result-display").html('Nhập tên và nhấn bắt đầu để chơi')
                 alert('Game đã được reset')
+            } else if(data.statusCode == 503){
+                alert('Bạn chưa nhập tên người chơi')
             }
         })
     })
@@ -40,20 +52,20 @@ $(document).ready(function (){
                 'select': select
             }
         }).done(function (data){
-            if(data.message === 'smaller') {
+            if(data.statusCode == 504) {
                 $("#result-display").html('Số vừa đoán nhỏ hơn đáp án (Số lần đoán: '+data.data+')')
-            } else if(data.message === 'bigger') {
+            } else if(data.statusCode == 505) {
                 $("#result-display").html('Số vừa đoán lớn hơn đáp án (Số lần đoán: '+data.data+')')
-            } else if(data.message === 'bingo') {
+            } else if(data.statusCode == 506) {
                 $("#result-display").html('Chúc mừng bạn đã đoán đúng sau '+data.data+' lần đoán')
-            } else if(data.message ==='numberMissing'){
+            } else if(data.statusCode == 507){
                 alert('Bạn chưa nhập số dự đoán')
-            } else if(data.message ==='outRange'){
+            } else if(data.statusCode == 508){
                 alert('Số nhập phải nằm trong phạm vi 1-1000')
-            } else if(data.message ==='notStartedYet'){
+            } else if(data.statusCode == 509){
                 alert('Bạn chưa nhấn nút bắt đầu')
-            } else if(data.message ==='finished'){
-                alert('Bạn đã đoán đúng số')
+            } else if(data.statusCode == 510){
+                alert('Bạn đã đoán đúng số rồi')
             }
         })
     })
