@@ -1,5 +1,5 @@
 <html>
 <body>
-<h2>Hello World!</h2>
+<h2>Bài tập Game đoán số</h2>
 </body>
 </html>
