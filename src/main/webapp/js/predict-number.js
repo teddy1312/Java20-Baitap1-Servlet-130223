@@ -31,6 +31,8 @@ $(document).ready(function (){
                 $("#result-display").html('Mời '+data.data+' nhập số dự đoán')
             } else if(data.statusCode == 502){
                 This.html('Bắt đầu')
+                document.getElementById("enter-name").value = ''
+                document.getElementById("enter-number").value = ''
                 $("#result-display").html('Nhập tên và nhấn bắt đầu để chơi')
                 alert('Game đã được reset')
             } else if(data.statusCode == 503){
